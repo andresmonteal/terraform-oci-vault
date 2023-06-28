@@ -39,7 +39,7 @@ resource "oci_kms_key" "main" {
     algorithm = var.key_shape_algorithm
     length    = var.key_shape_length
   }
-  management_endpoint = var.key_management_endpoint
+  management_endpoint = oci_kms_vault.main.management_endpoint
 
   #Optional
   defined_tags    = var.defined_tags

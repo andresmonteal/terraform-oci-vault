@@ -5,8 +5,7 @@ module "vault" {
 
   for_each = var.vaults
 
-  tenancy_ocid            = var.tenancy_ocid
-  compartment             = lookup(each.value, "compartment", null)
-  name                    = each.key
-  key_management_endpoint = each.value["key_endpoint"]
+  tenancy_ocid = var.tenancy_ocid
+  compartment  = lookup(each.value, "compartment", null)
+  name         = each.key
 }
