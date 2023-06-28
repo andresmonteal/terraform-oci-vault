@@ -30,7 +30,7 @@ resource "oci_kms_vault" "main" {
   }
 }
 
-resource "oci_kms_key" "test_key" {
+resource "oci_kms_key" "main" {
   #Required
   compartment_id = local.compartment_id
   display_name   = var.key_display_name
