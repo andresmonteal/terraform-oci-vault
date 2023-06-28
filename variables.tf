@@ -43,11 +43,6 @@ variable "defined_tags" {
 
 # vault key
 
-variable "key_management_endpoint" {
-  description = "The length of the key in bytes, expressed as an integer."
-  type        = string
-}
-
 variable "key_display_name" {
   description = "A user-friendly name for the key. It does not have to be unique, and it is changeable. Avoid entering confidential information."
   type        = string
