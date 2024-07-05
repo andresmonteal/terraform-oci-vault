@@ -121,6 +121,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Author
 
-Andres F. Montealegre
-montealegre.af@gmail.com
-https://github.com/andresmonteal
+**Andres F. Montealegre**
+
+- Email: [montealegre.af@gmail.com](mailto:montealegre.af@gmail.com)
+- GitHub: [https://github.com/andresmonteal](https://github.com/andresmonteal)
