@@ -1,69 +1,125 @@
-# OCI Vault Module
+# Oracle Cloud Vault and Secret Terraform Module
 
-This Terraform module deploys a Vault in Oracle Cloud Infrastructure (OCI). The module provisions a Key Management (KMS) Vault along with an associated encryption key.
+This repository contains Terraform modules for creating and managing Oracle Cloud Infrastructure (OCI) Vaults and Secrets.
 
-## Features
+## Modules
 
-- Creates an OCI Key Management (KMS) Vault.
-- Generates an encryption key within the Vault.
-
-## Prerequisites
-
-Before using this module, make sure you have the following:
-
-- OCI account credentials with the necessary permissions to create resources.
-- Terraform (v1.0.0 or above) installed and configured correctly.
-- Terraform OCI provider (v4.96.0 or above) installed and configured correctly.
+1. **Vault Module**: Creates a vault and associated keys in OCI.
+2. **Secret Module**: Creates secrets in a specified vault.
 
 ## Usage
-To use this module, include it in your Terraform configuration and specify the required input variables. Here's a basic example of how to use the module:
+
+### Vault Module
 
 ```hcl
 module "vault" {
-  source             = "path_to_module"
-  tenancy_ocid       = "your_tenancy_ocid"
-  compartment        = "your_compartment_name"
-  name               = "vault_name"
-  type               = "vault_type"
-  key_display_name   = "key_display_name"
-  key_shape_algorithm= "key_shape_algorithm"
-  key_shape_length   = "key_shape_length"
-  key_protection_mode= "key_protection_mode"
-  defined_tags       = {}
-  freeform_tags      = {}
+  source              = "./vault"
+  tenancy_ocid        = var.tenancy_ocid
+  compartment_id      = var.compartment_id
+  compartment         = var.compartment
+  name                = "myVault"
+  type                = "DEFAULT"
+  key_display_name    = "master-key"
+  key_shape_algorithm = "AES"
+  key_shape_length    = 32
+  key_protection_mode = "HSM"
+  freeform_tags       = {}
+  defined_tags        = {}
 }
 ```
 
-Replace "path_to_module" with the path to the module directory or the Git repository URL. 
-Replace the values with your specific requirements.
+### Secret Module
 
-## Variables
-Before using this module, you must configure the required variables. These can be set in a terraform.tfvars file for easy module configuration.
+```hcl
+module "vault_secret" {
+  source              = "./vault/secret"
+  tenancy_ocid        = var.tenancy_ocid
+  compartment_id      = var.compartment_id
+  compartment         = var.compartment
+  vault_id            = module.vault.id
+  name                = "mySecret"
+  content_type        = "BASE64"
+  content             = base64encode("mySecretContent")
+  freeform_tags       = {}
+  defined_tags        = {}
+  management_endpoint = module.vault.management_endpoint
+  type                = "ssh" # or null for non-ssh
+}
+```
 
-| Name                | Description                                                  | Type        | Default      | Required |
-|---------------------|--------------------------------------------------------------|-------------|--------------|----------|
-| tenancy_ocid        | The OCID of the root compartment.                            | string      | null         | yes      |
-| compartment         | The name of the compartment where to create all resources.   | string      | null         | yes      |
-| name                | The display name of the Vault.                               | string      | -            | yes      |
-| compartment_id      | The OCID of the compartment where the Vault will be created. | string      | null         | no       |
-| type                | The type of Vault.                                           | string      | "DEFAULT"    | no       |
-| key_display_name    | The display name of the encryption key.                      | string      | "master-key" | no       |
-| key_shape_algorithm | The algorithm used to generate the encryption key.           | string      | "AES"        | no       |
-| key_shape_length    | The length of the encryption key.                             | string      | "32"         | no       |
-| key_protection_mode | The protection mode of the encryption key.                   | string      | "HSM"        | no       |
-| freeform_tags       | Free-form tags for this resource.                             | map(string) | null         | no       |
-| defined_tags        | Defined tags for this resource.                               | map(string) | null         | no       |
+## Inputs
 
-**Note:** If `compartment_id` is provided, it will override the `compartment` variable.
+### Vault Module
+
+| Name                | Description                                                                                     | Type        | Default   | Required |
+| ------------------- | ----------------------------------------------------------------------------------------------- | ----------- | --------- | -------- |
+| `tenancy_ocid`      | (Required) The OCID of the root compartment.                                                    | `string`    | `null`    | Yes      |
+| `compartment_id`    | (Required) The OCID of the compartment to contain the vault.                                    | `string`    | `null`    | Yes      |
+| `compartment`       | (Optional) The name of the compartment to contain the vault.                                    | `string`    | `null`    | No       |
+| `name`              | (Required) A user-friendly name for the vault.                                                  | `string`    |           | Yes      |
+| `type`              | (Required) The type of vault to create.                                                         | `string`    | `DEFAULT` | Yes      |
+| `key_display_name`  | (Optional) A user-friendly name for the key.                                                    | `string`    | `master-key` | No     |
+| `key_shape_algorithm` | (Optional) The algorithm used by a key's key versions to encrypt or decrypt.                  | `string`    | `AES`     | No       |
+| `key_shape_length`  | (Optional) The length of the key in bytes.                                                      | `string`    | `32`      | No       |
+| `key_protection_mode` | (Optional) The service endpoint to perform management operations against.                     | `string`    | `HSM`     | No       |
+| `freeform_tags`     | (Optional) Free-form tags for this resource.                                                    | `map(any)`  | `null`    | No       |
+| `defined_tags`      | (Optional) Defined tags for this resource.                                                      | `map(any)`  | `null`    | No       |
+
+### Secret Module
+
+| Name                | Description                                                                                     | Type        | Default   | Required |
+| ------------------- | ----------------------------------------------------------------------------------------------- | ----------- | --------- | -------- |
+| `tenancy_ocid`      | (Required) The OCID of the root compartment.                                                    | `string`    | `null`    | Yes      |
+| `compartment_id`    | (Required) The OCID of the compartment to contain the secret.                                   | `string`    | `null`    | Yes      |
+| `compartment`       | (Optional) The name of the compartment to contain the secret.                                   | `string`    | `null`    | No       |
+| `vault_id`          | (Required) The OCID of the vault where you want to create the secret.                           | `string`    | `null`    | Yes      |
+| `vault`             | (Optional) The name of the vault where you want to create the secret.                           | `string`    | `null`    | No       |
+| `key_id`            | (Required) The OCID of the master encryption key that is used to encrypt the secret.            | `string`    | `null`    | Yes      |
+| `name`              | (Required) A user-friendly name for the secret.                                                 | `string`    |           | Yes      |
+| `description`       | (Optional) A brief description of the secret.                                                   | `string`    | `null`    | No       |
+| `content_type`      | (Optional) The content type of the secret.                                                      | `string`    | `BASE64`  | No       |
+| `content`           | (Optional) The base64-encoded content of the secret.                                            | `string`    | `null`    | No       |
+| `content_name`      | (Optional) Names should be unique within a secret.                                              | `string`    | `1`       | No       |
+| `freeform_tags`     | (Optional) Free-form tags for this resource.                                                    | `map(any)`  | `null`    | No       |
+| `defined_tags`      | (Optional) Defined tags for this resource.                                                      | `map(any)`  | `null`    | No       |
+| `management_endpoint` | (Optional) The service endpoint to perform management operations against.                     | `string`    | `null`    | No       |
+| `type`              | (Optional) If ssh key then generates key pair and secrets.                                      | `string`    | `null`    | No       |
 
 ## Outputs
 
-| Name                | Description            |
-|---------------------|------------------------|
-| id                  | Vault id               |
-| management_endpoint| Management endpoint id |
+### Vault Module
 
-## Notes
-- Ensure that you have the necessary IAM permissions to create resources in the specified compartments and VCN.
-- Review and customize the module inputs according to your specific requirements.
-- For more information on DNS Views in OCI and its configuration options, refer to the [OCI documentation](https://docs.oracle.com/en-us/iaas/Content/KeyManagement/home.htm).
+| Name                   | Description                      |
+| ---------------------- | -------------------------------- |
+| `id`                   | The ID of the created vault.     |
+| `management_endpoint`  | The management endpoint of the created vault. |
+
+### Secret Module
+
+| Name                   | Description                      |
+| ---------------------- | -------------------------------- |
+| `id`                   | The ID of the created secret.    |
+| `secret_content`       | The content of the created secret. |
+
+## Data Sources
+
+### Vault Module
+
+- `oci_identity_compartments.compartment`: Fetches compartment information.
+- `oci_core_vcns.vcns`: Fetches VCN information.
+- `oci_core_dhcp_options.dhcp_options`: Fetches DHCP options.
+
+### Secret Module
+
+- `oci_identity_compartments.compartment`: Fetches compartment information.
+- `oci_kms_vaults.vault`: Fetches vault information.
+- `oci_kms_keys.key`: Fetches key information.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Author
+
+Andres F. Montealegre
+montealegre.af@gmail.com
